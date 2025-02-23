@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>投入利润计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .calculator {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+        input {
+            padding: 8px;
+            width: 200px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>投入利润计算器</h2>
+        <div class="input-group">
+            <label>投入（元）:</label>
+            <input type="number" id="investment" step="0.01">
+        </div>
+        <div class="input-group">
+            <label>利润（元）:</label>
+            <input type="number" id="profit" step="0.01">
+        </div>
+        <button onclick="calculate()">立即计算</button>
+        
+        <div class="result">
+            <h3>计算结果</h3>
+            <div>每日单量：<span id="dailyOrdersResult">-</span></div>
+            <div>计算投入：<span id="calcInvestment">-</span></div>
+            <div>计算利润：<span id="calcProfit">-</span></div>
+        </div>
+    </div>
+
+    <script>
+        // 预定义计算公式系数
+        const PROFIT_COEFF = 3.28 * 28.8;  // 94.464
+        const INVEST_COEFF = 42 * 8 + 4.4 * 3; // 349.2
+        const FIXED_COST = 598;
+
+        function calculate() {
+            // 获取输入值
+            const I = parseFloat(document.getElementById('investment').value);
+            const P = parseFloat(document.getElementById('profit').value);
+            
+            // 结果元素
+            const dailySpan = document.getElementById('dailyOrdersResult');
+            const investSpan = document.getElementById('calcInvestment');
+            const profitSpan = document.getElementById('calcProfit');
+
+            try {
+                let D = null;
+                
+                // 数据验证
+                if (isNaN(I) && isNaN(P)) throw "至少需要输入一个值";
+                if (I < 0 || P < 0) throw "数值不能为负数";
+
+                // 计算逻辑
+                if (!isNaN(I) && !isNaN(P)) {
+                    // 双输入验证模式
+                    const D1 = (I - FIXED_COST) / INVEST_COEFF;
+                    const D2 = (P + FIXED_COST) / PROFIT_COEFF;
+                    
+                    if (Math.abs(D1 - D2) > 0.01) {
+                        throw "投入与利润不匹配，请检查输入";
+                    }
+                    D = (D1 + D2) / 2;
+                } else if (!isNaN(I)) {
+                    // 仅输入投入模式
+                    D = (I - FIXED_COST) / INVEST_COEFF;
+                } else {
+                    // 仅输入利润模式
+                    D = (P + FIXED_COST) / PROFIT_COEFF;
+                }
+
+                // 有效性检查
+                if (D < 0) throw "每日单量不能为负数";
+                if (isNaN(D)) throw "计算结果无效";
+
+                // 计算对应值
+                const calcInvestment = D * INVEST_COEFF + FIXED_COST;
+                const calcProfit = D * PROFIT_COEFF - FIXED_COST;
+
+                // 显示结果
+                dailySpan.textContent = D.toFixed(2);
+                investSpan.textContent = calcInvestment.toFixed(2);
+                profitSpan.textContent = calcProfit.toFixed(2);
+
+            } catch (err) {
+                alert("错误: " + err);
+                // 清空结果
+                dailySpan.textContent = '-';
+                investSpan.textContent = '-';
+                profitSpan.textContent = '-';
+            }
+        }
+    </script>
+</body>
+</html>
